@@ -5,6 +5,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
+import org.hibernate.query.NativeQuery;
 
 
 import java.sql.SQLException;
@@ -30,7 +31,7 @@ public class UserDaoHibernateImpl implements UserDao {
                     "id INT AUTO_INCREMENT PRIMARY KEY," +
                     "name VARCHAR(45) NOT NULL," +
                     "lastname VARCHAR(45) NOT NULL," +
-                    "age TINYINT(10) NOT NULL)");
+                    "age TINYINT(10) NOT NULL)").executeUpdate();
 
             session.getTransaction().commit();
 
@@ -41,14 +42,14 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public void dropUsersTable() {
-        Configuration configuration = new Configuration();
+        Configuration configuration = new Configuration().addAnnotatedClass(User.class);
         SessionFactory sessionFactory = configuration.buildSessionFactory();
         Session session = sessionFactory.getCurrentSession();
 
         try (sessionFactory; session) {
             session.beginTransaction();
 
-            session.createSQLQuery("DROP TABLE IF EXISTS users");
+            session.createSQLQuery("DROP TABLE IF EXISTS users").executeUpdate();
 
             session.getTransaction().commit();
         } catch (RuntimeException e) {
@@ -62,22 +63,23 @@ public class UserDaoHibernateImpl implements UserDao {
         SessionFactory sessionFactory = configuration.buildSessionFactory();
         Session session = sessionFactory.getCurrentSession();
 
-        try (sessionFactory; session) {
+        try (session; sessionFactory) {
             session.beginTransaction();
 
             User user = new User(name, lastName, age);
             session.save(user);
 
             session.getTransaction().commit();
+            System.out.println("User с именем - " + name + " добавлен в базу данных");
         } catch (RuntimeException e) {
-            sessionFactory.getCurrentSession().getTransaction().rollback();
+            sessionFactory.openSession().getTransaction().rollback();
         }
 
     }
 
     @Override
     public void removeUserById(long id) {
-        Configuration configuration = new Configuration();
+        Configuration configuration = new Configuration().addAnnotatedClass(User.class);
         SessionFactory sessionFactory = configuration.buildSessionFactory();
         Session session = sessionFactory.getCurrentSession();
 
@@ -97,7 +99,7 @@ public class UserDaoHibernateImpl implements UserDao {
     @Override
     public List<User> getAllUsers() {
         List<User> users = new ArrayList<>();
-        Configuration configuration = new Configuration();
+        Configuration configuration = new Configuration().addAnnotatedClass(User.class);
         SessionFactory sessionFactory = configuration.buildSessionFactory();
         Session session = sessionFactory.getCurrentSession();
 
@@ -115,7 +117,7 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public void cleanUsersTable() {
-        Configuration configuration = new Configuration();
+        Configuration configuration = new Configuration().addAnnotatedClass(User.class);
         SessionFactory sessionFactory = configuration.buildSessionFactory();
         Session session = sessionFactory.getCurrentSession();
 
