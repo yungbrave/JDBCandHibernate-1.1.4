@@ -37,7 +37,7 @@ public class UserDaoHibernateImpl implements UserDao {
             session.getTransaction().commit();
 
         } catch (RuntimeException e) {
-            sessionFactory.getCurrentSession().getTransaction().rollback();
+            session.getTransaction().rollback();
         }
     }
 
@@ -53,7 +53,7 @@ public class UserDaoHibernateImpl implements UserDao {
 
             session.getTransaction().commit();
         } catch (RuntimeException e) {
-            sessionFactory.getCurrentSession().getTransaction().rollback();
+            session.getTransaction().rollback();
         }
     }
 
@@ -71,7 +71,7 @@ public class UserDaoHibernateImpl implements UserDao {
             session.getTransaction().commit();
             System.out.println("User с именем - " + name + " добавлен в базу данных");
         } catch (RuntimeException e) {
-            sessionFactory.openSession().getTransaction().rollback();
+            session.getTransaction().rollback();
         }
 
     }
@@ -108,23 +108,6 @@ public class UserDaoHibernateImpl implements UserDao {
         } catch (RuntimeException e) {
             e.printStackTrace();
         }
-
-//        try (sessionFactory; session) {
-
-//        try (sessionFactory; session) {
-//            session.setReadOnly(User.class,true);
-//            users = session.createQuery("FROM User", User.class).getResultList();
-//        } catch (RuntimeException e) {
-//            e.printStackTrace();
-//        }
-//        CriteriaBuilder builder = session.getCriteriaBuilder();
-//        CriteriaQuery<User> criteriaQuery = builder.createQuery(User.class);
-//        Root<User> root = criteriaQuery.from(User.class);
-//        criteriaQuery.select(root);
-//        users = session.createQuery(criteriaQuery).getResultList();
-//        } catch (RuntimeException e) {
-//            e.printStackTrace();
-//        }
         return users;
     }
 
