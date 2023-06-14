@@ -4,9 +4,16 @@ import jm.task.core.jdbc.model.User;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
+import org.hibernate.query.Query;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
+
+import static jm.task.core.jdbc.util.Util.getSessionFactory;
 
 public class UserDaoHibernateImpl implements UserDao {
     public UserDaoHibernateImpl() {
@@ -15,8 +22,7 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public void createUsersTable() {
-        Configuration configuration = new Configuration().addAnnotatedClass(User.class);
-        SessionFactory sessionFactory = configuration.buildSessionFactory();
+        SessionFactory sessionFactory = getSessionFactory();
         Session session = sessionFactory.getCurrentSession();
 
         try (sessionFactory; session) {
@@ -37,8 +43,7 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public void dropUsersTable() {
-        Configuration configuration = new Configuration().addAnnotatedClass(User.class);
-        SessionFactory sessionFactory = configuration.buildSessionFactory();
+        SessionFactory sessionFactory = getSessionFactory();
         Session session = sessionFactory.getCurrentSession();
 
         try (sessionFactory; session) {
@@ -54,8 +59,7 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public void saveUser(String name, String lastName, byte age) {
-        Configuration configuration = new Configuration().addAnnotatedClass(User.class);
-        SessionFactory sessionFactory = configuration.buildSessionFactory();
+        SessionFactory sessionFactory = getSessionFactory();
         Session session = sessionFactory.getCurrentSession();
 
         try (session; sessionFactory) {
@@ -74,8 +78,7 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public void removeUserById(long id) {
-        Configuration configuration = new Configuration().addAnnotatedClass(User.class);
-        SessionFactory sessionFactory = configuration.buildSessionFactory();
+        SessionFactory sessionFactory = getSessionFactory();
         Session session = sessionFactory.getCurrentSession();
 
 
@@ -87,29 +90,47 @@ public class UserDaoHibernateImpl implements UserDao {
 
             session.getTransaction().commit();
         } catch (RuntimeException e) {
-            sessionFactory.getCurrentSession().getTransaction().rollback();
+            session.getTransaction().rollback();
         }
     }
 
     @Override
     public List<User> getAllUsers() {
-        List<User> users = new ArrayList<>();
-        Configuration configuration = new Configuration().addAnnotatedClass(User.class);
-        SessionFactory sessionFactory = configuration.buildSessionFactory();
+        SessionFactory sessionFactory = getSessionFactory();
         Session session = sessionFactory.getCurrentSession();
-
+        List<User> users = new ArrayList<>();
         try (sessionFactory; session) {
-            users = session.createQuery("FROM User").getResultList();
+            session.beginTransaction();
+
+            users = session.createQuery("FROM User", User.class).list();
+
+            session.getTransaction().commit();
         } catch (RuntimeException e) {
             e.printStackTrace();
         }
+
+//        try (sessionFactory; session) {
+
+//        try (sessionFactory; session) {
+//            session.setReadOnly(User.class,true);
+//            users = session.createQuery("FROM User", User.class).getResultList();
+//        } catch (RuntimeException e) {
+//            e.printStackTrace();
+//        }
+//        CriteriaBuilder builder = session.getCriteriaBuilder();
+//        CriteriaQuery<User> criteriaQuery = builder.createQuery(User.class);
+//        Root<User> root = criteriaQuery.from(User.class);
+//        criteriaQuery.select(root);
+//        users = session.createQuery(criteriaQuery).getResultList();
+//        } catch (RuntimeException e) {
+//            e.printStackTrace();
+//        }
         return users;
     }
 
     @Override
     public void cleanUsersTable() {
-        Configuration configuration = new Configuration().addAnnotatedClass(User.class);
-        SessionFactory sessionFactory = configuration.buildSessionFactory();
+        SessionFactory sessionFactory = getSessionFactory();
         Session session = sessionFactory.getCurrentSession();
 
         try (sessionFactory; session) {
@@ -119,7 +140,7 @@ public class UserDaoHibernateImpl implements UserDao {
 
             session.getTransaction().commit();
         } catch (RuntimeException e) {
-            sessionFactory.getCurrentSession().getTransaction().rollback();
+            session.getTransaction().rollback();
         }
     }
 }
